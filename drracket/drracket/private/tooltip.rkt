@@ -1,22 +1,20 @@
-#lang racket/base
+#lang typed/racket/base
 (require racket/math
-         racket/gui
-         racket/class
-         framework)
-
-;; to bring back types, added "typed/" in front of the
-;; racket/* imports, remove these macros and remove the
-;; occurrences of "#;#;" that appear below
-;; to get back to at least the most recently typed version
-;; of this file, but there will be problems, including
-;; getting the preferneces system to cooperate and the
-;; font get-size method.
-(define-syntax-rule (: . whatever) (void))
-(define-syntax-rule (assert e) e)
+         typed/racket/gui/base
+         typed/racket/class
+         typed/framework)
 
 (define (get-font-size)
   (editor:font-size-pref->current-font-size
-   (preferences:get 'framework:standard-style-list:font-size)))
+   (cast
+    (preferences:get 'framework:standard-style-list:font-size)
+    (Vector
+     (HashTable
+      (Pairof
+       (List Nonnegative-Integer Nonnegative-Integer)
+       (Listof (List Nonnegative-Integer Nonnegative-Integer)))
+      Nonnegative-Integer)
+     Nonnegative-Integer))))
 
 (provide tooltip-frame%)
 
@@ -26,7 +24,7 @@
 (: get-tooltip-font (-> (Instance Font%)))
 (define (get-tooltip-font)
   (cond
-    [tooltip-font tooltip-font]
+    [tooltip-font (assert tooltip-font)]
     [else
      (define default-font-size
        (let* ([txt (make-object text%)]
@@ -36,7 +34,7 @@
      (define ans (send the-font-list find-or-create-font
                        (* (/ (send small-control-font get-size) default-font-size)
                           (get-font-size))
-                       (send small-control-font get-face)
+                       (assert (send small-control-font get-face))
                        (send small-control-font get-family)
                        (send small-control-font get-style)
                        (send small-control-font get-weight)
@@ -71,7 +69,7 @@
       (define dc (get-dc))
       (send dc set-font (get-tooltip-font))
       (define-values (w h)
-        (for/fold ([w #;#;: Nonnegative-Real 0] [h #;#;: Nonnegative-Real 0])
+        (for/fold ([w : Nonnegative-Real 0] [h : Nonnegative-Real 0])
                   ([space+label (in-list labels)])
           (define space (list-ref space+label 0))
           (define label (list-ref space+label 1))
@@ -87,6 +85,7 @@
       (send parent reflow-container))
 
     ;; private field for gc reasons
+    (: font-size-callback : Any Any -> Any)
     (define font-size-callback (λ (p v) (set! tooltip-font #f) (update-size)))
     (preferences:add-callback 'framework:standard-style-list:font-size
                               font-size-callback
@@ -107,13 +106,14 @@
         (define label (list-ref space+label 1))
         (define-values (space-w _1 _2 _3) (send dc get-text-extent space))
         (send dc draw-text label (+ 2 space-w) (+ 2 (* i th)))))
+
     (super-new [stretchable-width #f] [stretchable-height #f])))
 
 (define tooltip-frame%
   (class frame%
     (inherit reflow-container move get-width get-height is-shown?)
     
-    (init-field [frame-to-track #;#;: (Option (Instance Window<%>)) #f])
+    (init-field [frame-to-track : (Option (Instance Window<%>)) #f])
     (: timer (Option (Instance Timer%)))
     (define timer
       (let ([frame-to-track frame-to-track])
@@ -137,7 +137,7 @@
       (define broken-up-lines
         (apply
          append
-         (for/list #;#;: (Listof (Listof (List String String))) ([str #;#;: String (in-list ls)])
+         (for/list : (Listof (Listof (List String String))) ([str : String (in-list ls)])
            (strings->strings+spacers (regexp-split #rx"\n" str)))))
       (send yellow-message set-lab broken-up-lines))
     
@@ -172,7 +172,7 @@
     
     (: try-moving-to (Integer Integer Integer Integer -> Boolean))
     (define/private (try-moving-to x y w h)
-      (and (for/or #;#;: Boolean ([m #;#;: Natural (in-range 0 (get-display-count))])
+      (and (for/or : Boolean ([m : Natural (in-range 0 (get-display-count))])
              (define-values (mx my) (get-display-left-top-inset #:monitor m))
              (define-values (mw mh) (get-display-size #:monitor m))
              (and mx my mw mh

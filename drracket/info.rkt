@@ -27,7 +27,7 @@
                "html-lib"
                "images-lib"
                "icons"
-               "typed-racket-more"
+               ("typed-racket-more" #:version "1.2")
                "trace"
                "macro-debugger"
                "net-lib"

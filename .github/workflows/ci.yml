@@ -20,6 +20,7 @@ jobs:
       - run: ls -ld ~/.racket/ || echo "doesn't exist yet"
       - run: sudo raco pkg install --auto -i --no-setup --skip-installed drracket-test drracket-tool-test
       - run: ls -ld ~/.racket/ || echo "doesn't exist yet"
+      - run: ls -l ~/.racket/
       - run: racket -l- pkg/dirs-catalog --link --check-metadata pkgs-catalog .
       - run: ls -ld ~/.racket/ || echo "doesn't exist yet"
       - run: echo file://`pwd`/pkgs-catalog/ > catalog-config.txt

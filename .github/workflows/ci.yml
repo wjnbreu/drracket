@@ -28,3 +28,4 @@ jobs:
       - run: mkdir .racket/
       - run: chmod -R a+w .racket/
       - run: xvfb-run raco test -e -l tests/drracket/module-lang-test
+      - run: xvfb-run raco test -e -l tests/drracket/syncheck-test
